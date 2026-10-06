@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-data
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      # TODO: revisit
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forgejo
+  template:
+    metadata:
+      labels:
+        app: forgejo
+    spec:
+      containers:
+        - name: forgejo
+          image: codeberg.org/forgejo/forgejo:15.0.9
+          env:
+            - name: FORGEJO__database__DB_TYPE
+              value: postgres
+            - name: FORGEJO__database__HOST
+              value: forgejo-postgres:5432
+            - name: FORGEJO__database__NAME
+              valueFrom:
+                secretKeyRef: {name: forgejo-db, key: POSTGRES_DB}
+            - name: FORGEJO__database__USER
+              valueFrom:
+                secretKeyRef: {name: forgejo-db, key: POSTGRES_USER}
+            - name: FORGEJO__database__PASSWD
+              valueFrom:
+                secretKeyRef: {name: forgejo-db, key: POSTGRES_PASSWORD}
+            - name: FORGEJO__server__ROOT_URL
+            # TODO: change this to the forgejo domain name
+              value: https://it220266.cloud.htl-leonding.ac.at/
+            # SSH off: this namespace may only use ClusterIP, which has no path in
+            # from outside except the HTTP ingress. Needs an admin to either (1) point
+            # an ingress-nginx tcp-services port at forgejo:2222 (nothing to change
+            # here), (2) allow NodePort for this namespace, or (3) give forgejo its
+            # own public IP. Then uncomment and set SSH_PORT/SSH_DOMAIN to what
+            # users actually dial.
+            # - name: FORGEJO__server__START_SSH_SERVER
+            #   value: "true"
+            # - name: FORGEJO__server__SSH_LISTEN_PORT
+            #   value: "2222"
+            # - name: FORGEJO__server__SSH_PORT
+            #   value: "2222"
+            # - name: FORGEJO__server__SSH_DOMAIN
+            #   value: it220266.cloud.htl-leonding.ac.at
+            - name: FORGEJO__openid__ENABLE_OPENID_SIGNIN
+              value: "false"
+            - name: FORGEJO__openid__ENABLE_OPENID_SIGNUP
+              value: "false"
+            - name: FORGEJO__security__SECRET_KEY
+              valueFrom:
+                secretKeyRef: {name: forgejo, key: SECRET_KEY}
+            - name: FORGEJO__security__INSTALL_LOCK
+              value: "true"
+          ports:
+            - containerPort: 3000
+            # - containerPort: 2222
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: forgejo-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgejo
+spec:
+  selector:
+    app: forgejo
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+# Rejected by policy today. Option (1) above needs no NodePort: drop the type and
+# nodePort lines and this is a plain ClusterIP for tcp-services to point at.
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: forgejo-ssh
+# spec:
+#   type: NodePort
+#   selector:
+#     app: forgejo
+#   ports:
+#     - port: 2222
+#       targetPort: 2222
+#       nodePort: 30022
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forgejo
+spec:
+  ingressClassName: nginx
+  rules:
+    # TODO: change this for prod forgejo
+    - host: it220266.cloud.htl-leonding.ac.at
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forgejo
+                port:
+                  number: 3000
