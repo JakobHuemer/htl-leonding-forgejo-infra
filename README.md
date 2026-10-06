@@ -3,16 +3,19 @@
 To setup secrets copy the files `forgejo/secrets.env.template` and
 `woodpecker/secrets.env.template`, trim the `.template` suffix and fill in the
 variables. How the secret can be generated is in the comment above each secret.
+Some secrets can't be set yet for woodpecker so leave them for now and don't
+apply the woodpecker secrets.
 
-Then run `./setup-secrets.sh` and it should create them for you.
 
 ## Deploy and Setup for Forgejo
+
+Run `./setup-secrets.sh forgejo` to set up the secrets for forgejo you create in
+the first step.
 
 run
 
 ```
 kubectl apply -f forgejo
-kubectl apply -f woodpecker
 ```
 
 when everything is deployed, create an admin user:
@@ -74,13 +77,25 @@ When on the sign in page, you can click "Log In with Keycloak".
 
 ## 2 Options: 1. Woodpecker setup
 
-
 Add an OAuth2 App to Forgejo and name it Woodpecker.
 Add this redirect URL to the OAuth2 app:
 
-`https://it220215.cloud.htl-leonding.ac.at/authorize`
+`https://<woodpecker domain>/authorize`
 
-Copy the Client ID and Client Secret and put it in the woodpecker secrets.
+Copy the Client ID and Client Secret and put it in the woodpecker secrets
+(`woodpecker/secrets.env`).
+
+Then setup the secrets:
+
+```
+./setup-secrets.sh woodpecker
+```
+
+Then deploy woodpecker:
+
+```
+kubectl apply -f woodpecker
+```
 
 The deployment already has an agent it deploys and connects to woodpecker.
 This is necessary as users can't just add own runners for their orgs/repos

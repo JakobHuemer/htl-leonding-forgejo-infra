@@ -3,16 +3,26 @@ set -eu
 
 cd "$(dirname "$0")"
 
-for f in forgejo/secrets.env woodpecker/secrets.env; do
-    [ -f "$f" ] || { echo "missing $f, copy it from $f.template and fill it in" >&2; exit 1; }
-done
+usage() {
+    echo "usage: $0 [forgejo|woodpecker]" >&2
+    exit 1
+}
 
 create() {
     kubectl create secret generic "$1" --from-env-file="$2" \
         --dry-run=client -o yaml | kubectl apply -f -
 }
 
-create forgejo-db forgejo/secrets.env
-create forgejo forgejo/secrets.env
-create woodpecker-db woodpecker/secrets.env
-create woodpecker woodpecker/secrets.env
+setup() {
+    app=$1
+    file=$app/secrets.env
+    [ -f "$file" ] || { echo "missing $file, copy it from $file.template and fill it in" >&2; exit 1; }
+    create "$app-db" "$file"
+    create "$app" "$file"
+}
+
+case ${1:-all} in
+    forgejo|woodpecker) setup "$1" ;;
+    all) setup forgejo; setup woodpecker ;;
+    *) usage ;;
+esac
