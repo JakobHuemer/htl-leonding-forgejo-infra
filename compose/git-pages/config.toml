@@ -1,0 +1,18 @@
+[server]
+pages = "tcp/0.0.0.0:3000"
+
+[storage]
+type = "fs"
+
+[storage.fs]
+root = "/app/data"
+
+[limits]
+allowed-repository-url-prefixes = ["https://git.fistel.dev/"]
+
+[[wildcard]]
+domain = "pages.fistel.dev"
+clone-url = "https://git.fistel.dev/<user>/<project>.git"
+index-repo = "<user>.pages.fistel.dev"
+index-repo-branch = "main"
+authorization = "forgejo"

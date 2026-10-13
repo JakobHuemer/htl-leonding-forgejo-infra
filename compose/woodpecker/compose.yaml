@@ -1,0 +1,27 @@
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v3.19.0
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      WOODPECKER_HOST: https://${WOODPECKER_DOMAIN}
+      WOODPECKER_OPEN: false
+      WOODPECKER_ADMIN: ${WOODPECKER_ADMIN}
+      WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET}
+      WOODPECKER_FORGEJO: true
+      WOODPECKER_FORGEJO_URL: https://${FORGEJO_DOMAIN}
+      WOODPECKER_FORGEJO_CLIENT: ${WOODPECKER_FORGEJO_CLIENT}
+      WOODPECKER_FORGEJO_SECRET: ${WOODPECKER_FORGEJO_SECRET}
+      WOODPECKER_DATABASE_DRIVER: postgres
+      WOODPECKER_DATABASE_DATASOURCE: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/woodpecker?sslmode=disable
+      WOODPECKER_LOG_STORE: file
+      WOODPECKER_LOG_STORE_FILE_PATH: /var/lib/woodpecker/logs
+    ports:
+      - "${WOODPECKER_HTTP_PORT}:8000"
+    volumes:
+      - woodpecker-data:/var/lib/woodpecker
+
+volumes:
+  woodpecker-data:

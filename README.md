@@ -1,13 +1,67 @@
 # Setup Forgejo
 
+## Docker Compose
+
+All files for the setup can be found in the compose/ folder.
+
+Copy `.env.template` to `.env` and fill in the secrets. How the secret can be
+generated is in the comment above each secret.
+
+Then run:
+
+```
+docker compose up -d
+```
+
+Registration is disabled, so create an admin user:
+
+```
+docker compose exec -u git forgejo forgejo admin user create \
+    --admin --username <yourname> --email <yourmail> --password '<a secure password>'
+```
+
+### Woodpecker
+
+Add an OAuth2 App to Forgejo and name it Woodpecker.
+Add this redirect URL to the OAuth2 app:
+
+`https://<woodpecker domain>/authorize`
+
+Copy the Client ID and Client Secret into `WOODPECKER_FORGEJO_CLIENT` and
+`WOODPECKER_FORGEJO_SECRET`, then run `docker compose up -d` again.
+
+### YouTrack
+
+Create an access token in Forgejo with read and write permission on the
+repositories. Write is needed so YouTrack can create the webhook.
+
+In YouTrack, add a VCS integration to the project, pick Gitea as the server,
+enter the repository URL and the token.
+
+Commands in commit messages need the `#` prefix:
+
+```
+fix the thing #TES-1 In Progress
+```
+
+The commit author is matched by email, so the address in git has to be the one
+of the YouTrack account and the account has to be in the Committers group of the
+integration. Without a match the commit is still linked but the command is
+dropped.
+
+## TODO
+
+The Woodpecker agent is missing, so no pipeline runs yet. The host docker socket
+is not an option, so it has to run against a docker-in-docker daemon.
+
+## OLD UNSUPPOERTED - Deploy and Setup for Forgejo
+
 To setup secrets copy the files `forgejo/secrets.env.template` and
 `woodpecker/secrets.env.template`, trim the `.template` suffix and fill in the
 variables. How the secret can be generated is in the comment above each secret.
 Some secrets can't be set yet for woodpecker so leave them for now and don't
 apply the woodpecker secrets.
 
-
-## Deploy and Setup for Forgejo
 
 Run `./setup-secrets.sh forgejo` to set up the secrets for forgejo you create in
 the first step.

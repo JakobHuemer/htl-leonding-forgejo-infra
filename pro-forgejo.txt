@@ -1,0 +1,10 @@
+- eigenens package registry 
+- stable, keine unnötigen copilot pushes, für downtime ist man selbst
+  verantwortlich.
+- Eigene runner (macs, arm runner, linux, windows, etc.)
+- Verbindung mit keycloak provisioniert user accounts mit schulemail
+- eigener lokaler cache mit gleichen runnern
+
+Woodpecker:
+
+- Statt JS actions gibt es docker images als plugins

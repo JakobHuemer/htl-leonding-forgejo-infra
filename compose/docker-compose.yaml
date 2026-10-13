@@ -1,0 +1,13 @@
+name: forgejo-htl
+
+include:
+  - postgres/compose.yaml
+  - forgejo/compose.yaml
+  - woodpecker/compose.yaml
+  - git-pages/compose.yaml
+
+networks:
+  default:
+    name: forgejo-htl
+    driver_opts:
+      com.docker.network.bridge.name: br-forgejo
