@@ -101,6 +101,11 @@ The deployment already has an agent it deploys and connects to woodpecker.
 This is necessary as users can't just add own runners for their orgs/repos
 like you can do with forgejo actions.
 
+> NOTE: Build logs are currently written into the database, which will grow it
+> a lot over time. To keep them out of the database, set
+> `WOODPECKER_LOG_STORE=file` and `WOODPECKER_LOG_STORE_FILE_PATH` on the
+> server and give it its own PVC for that path.
+
 ## 2 Options: 2. Forgejo Actions
 
 Users can add their own repo/org level runners so this is not mandatory for admins.
