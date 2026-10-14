@@ -1,9 +1,14 @@
 log:
   level: info
 runner:
+  file: .runner
   capacity: 1
   timeout: 1h
   labels:
-    - docker:docker://node:22-alpine
-container:
-  network: forgejo-htl
+    - docker:docker://node:22-bookworm
+server:
+  connections:
+    forgejo:
+      url: http://git.fistel.dev/
+      uuid:
+      token:

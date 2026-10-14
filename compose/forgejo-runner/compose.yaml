@@ -8,8 +8,7 @@ services:
       - forgejo-runner-data:/data
       - forgejo-runner-cache:/cache
     environment:
-      DOCKER_HOST: tpc://docker-in-docker:2375
-    user: 1001:1001
+      DOCKER_HOST: tcp://docker-in-docker:2375
     depends_on:
       docker-in-docker:
         condition: service_started
