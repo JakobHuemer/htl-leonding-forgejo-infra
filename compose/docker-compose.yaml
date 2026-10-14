@@ -3,6 +3,7 @@ name: forgejo-htl
 include:
   - postgres/compose.yaml
   - forgejo/compose.yaml
+  - forgejo-runner/compose.yaml
   - woodpecker/compose.yaml
   - git-pages/compose.yaml
 

@@ -1,0 +1,14 @@
+services:
+  forgejo-runner:
+    image: code.forgejo.org/forgejo/runner:9.1.1
+    restart: unless-stopped
+    depends_on:
+      - forgejo
+    command: ["/bin/forgejo-runner", "daemon", "--config", "/data/runner-config.yaml"]
+    volumes:
+      - ./config.yaml:/data/runner-config.yaml:ro
+      - forgejo-runner-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  forgejo-runner-data:

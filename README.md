@@ -30,6 +30,39 @@ Add this redirect URL to the OAuth2 app:
 Copy the Client ID and Client Secret into `WOODPECKER_FORGEJO_CLIENT` and
 `WOODPECKER_FORGEJO_SECRET`, then run `docker compose up -d` again.
 
+### Forgejo Actions Runner
+
+Users can add their own repo and org level runners, so this one is only the
+shared instance level runner.
+
+Copy `forgejo-runner/config.yaml.template` to `forgejo-runner/config.yaml`.
+
+Generate a secret and register the runner:
+
+```
+S=$(openssl rand -hex 20)
+docker compose exec -u git forgejo forgejo forgejo-cli actions register \
+    --name <runner name> --scope <user or org> --secret $S
+```
+
+The first 16 characters of the secret are the runner identifier. Hex encode
+them and format the result as a UUID:
+
+```
+printf %s "${S:0:16}" | xxd -p | \
+    sed 's/\(.\{8\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.\{12\}\)/\1-\2-\3-\4-\5/'
+```
+
+Put that UUID in `uuid` and the full secret in `token`, then run
+`docker compose up -d` again.
+
+The labels in `config.yaml` decide which image a job runs in. Every image has to
+be available for arm64 or the job will not start on the Pi.
+
+> NOTE: The runner image runs as uid 1000 and may not be allowed to use the
+> host docker socket. If it logs a permission error, add `group_add` with the
+> gid from `getent group docker` to the service.
+
 ### YouTrack
 
 Create an access token in Forgejo with read and write permission on the
@@ -51,8 +84,9 @@ dropped.
 
 ## TODO
 
-The Woodpecker agent is missing, so no pipeline runs yet. The host docker socket
-is not an option, so it has to run against a docker-in-docker daemon.
+The Woodpecker agent and the Forgejo runner both use the host docker socket at
+the moment, which gives every pipeline root on the host. Both have to be moved
+to a docker-in-docker daemon.
 
 ## OLD UNSUPPOERTED - Deploy and Setup for Forgejo
 
