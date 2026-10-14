@@ -1,5 +1,5 @@
 [server]
-pages = "tcp/0.0.0.0:3000"
+pages = "tcp/0.0.0.0:80"
 
 [storage]
 type = "fs"
