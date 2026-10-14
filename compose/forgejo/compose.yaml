@@ -1,6 +1,6 @@
 services:
   forgejo:
-    image: codeberg.org/forgejo/forgejo:15.0.10
+    image: codeberg.org/forgejo/forgejo:15
     restart: unless-stopped
     depends_on:
       postgres:

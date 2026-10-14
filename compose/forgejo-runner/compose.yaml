@@ -1,14 +1,28 @@
 services:
   forgejo-runner:
-    image: code.forgejo.org/forgejo/runner:9.1.1
+    image: code.forgejo.org/forgejo/runner:13
     restart: unless-stopped
-    depends_on:
-      - forgejo
     command: ["/bin/forgejo-runner", "daemon", "--config", "/data/runner-config.yaml"]
     volumes:
       - ./config.yaml:/data/runner-config.yaml:ro
       - forgejo-runner-data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
+      - forgejo-runner-cache:/cache
+    environment:
+      DOCKER_HOST: tpc://docker-in-docker:2375
+    user: 1001:1001
+    depends_on:
+      docker-in-docker:
+        condition: service_started
+      forgejo:
+        condition: service_started
+
+  docker-in-docker:
+    image: docker:dind
+    container_name: 'docker_dind'
+    privileged: 'true'
+    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false']
+    restart: 'unless-stopped'
 
 volumes:
   forgejo-runner-data:
+  forgejo-runner-cache:

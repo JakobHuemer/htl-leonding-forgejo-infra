@@ -7,9 +7,3 @@ runner:
     - docker:docker://node:22-alpine
 container:
   network: forgejo-htl
-server:
-  connections:
-    forgejo:
-      url: http://forgejo:3000/
-      uuid:
-      token:
